@@ -1,5 +1,7 @@
-ion-google-place
-================
+ion-freebase-autocomplete
+=========================
+
+### WIP, just a fork of ion-google-place for now
 
 Ionic directive for a location dropdown that utilizes google maps
 
@@ -29,4 +31,3 @@ angular.module('myApp', [
 
 That's pretty much it. Now you can use the directive like so:
 `<ion-google-place placeholder="Enter an address, Apt# and ZIP" ng-model="location" />`
-
