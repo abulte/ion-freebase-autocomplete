@@ -1,19 +1,21 @@
 {
-  "name": "ion-google-place",
+  "name": "ion-freebase-autocomplete",
   "version": "0.0.1",
-  "homepage": "https://github.com/israelidanny/ion-google-place",
+  "homepage": "https://github.com/abulte/ion-freebase-autocomplete",
   "authors": [
-    "Danny Povolotski <dannypovolotski@gmail.com>"
+    "Alexandre Bulté <alexandre@bulte.net>"
   ],
-  "description": "Ionic directive for a location field (using google maps geocoding)",
-  "main": "ion-google-place.js",
+  "description": "Ionic directive for a freebase-driven autocomplete field",
+  "main": "ion-freebase-autocomplete.js",
   "keywords": [
     "ionic",
-    "maps",
-    "locations",
+    "freebase",
     "dropdown",
     "autocomplete"
   ],
+  "dependencies" : {
+    "ng-freebase": "0.0.0"
+  },
   "license": "MIT",
   "ignore": [
     "**/.*",
