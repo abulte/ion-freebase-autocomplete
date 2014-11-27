@@ -10,11 +10,13 @@ angular.module('ion-freebase-autocomplete', ['freebase'])
     function($ionicTemplateLoader, $ionicBackdrop, $q, $timeout, $rootScope,
       $document, freebase) {
       return {
-        require: '?ngModel',
-        restrict: 'E',
-        template: '<input type="text" readonly="readonly" class="ion-freebase-autocomplete" autocomplete="off">',
-        replace: true,
-        link: function(scope, element, attrs, ngModel) {
+        scope: {
+          hit: '=',
+          searchFilter: '=',
+          searchOperator: '@',
+          onSelectHit: '&?'
+        },
+        link: function(scope, element, attrs) {
           scope.hits = [];
           var searchEventTimeout;
 
@@ -45,30 +47,42 @@ angular.module('ion-freebase-autocomplete', ['freebase'])
             appendTo: $document[0].body
           });
 
+          scope.selectHit = function(hit) {
+            scope.hit = hit;
+            if (scope.onSelectHit) {
+              scope.onSelectHit({selectedHit: hit});
+            }
+            scope.modal.element.css('display', 'none');
+            $ionicBackdrop.release();
+          };
+
+          // prepare search filter from attrs
+          var filter = '(' + scope.searchOperator;
+          angular.forEach(scope.searchFilter, function(v, k) {
+            if (angular.isDefined(v)) {
+              filter += ' ' + k + ':"' + v + '"';
+            }
+          });
+          filter += ')';
+
+          // watch query and query freebase
+          scope.$watch('searchQuery', function(query) {
+            if (searchEventTimeout) $timeout.cancel(
+              searchEventTimeout);
+            searchEventTimeout = $timeout(function() {
+              if (!query) return;
+              if (query.length < 3);
+              // build the filter from attrs
+              freebase.search(query, {filter: filter}).then(function(response) {
+                scope.hits = response.data.result;
+              });
+            }, 350); // we're throttling the input by 350ms to be nice to google's API
+          });
+
           popupPromise.then(function(el) {
+            scope.modal = el;
             var searchInputElement = angular.element(el.element.find(
               'input'));
-
-            scope.selectHit = function(location) {
-              ngModel.$setViewValue(location);
-              ngModel.$render();
-              el.element.css('display', 'none');
-              $ionicBackdrop.release();
-            };
-
-            scope.$watch('searchQuery', function(query) {
-              if (searchEventTimeout) $timeout.cancel(
-                searchEventTimeout);
-              searchEventTimeout = $timeout(function() {
-                if (!query) return;
-                if (query.length < 3);
-                var filter = '(any type:/music/artist)';
-                freebase.search(query, {filters: filter}).then(function(response) {
-                  console.log(response.data.result);
-                  scope.hits = response.data.result;
-                });
-              }, 350); // we're throttling the input by 350ms to be nice to google's API
-            });
 
             var onClick = function(e) {
               e.preventDefault();
@@ -97,23 +111,6 @@ angular.module('ion-freebase-autocomplete', ['freebase'])
             element.attr('placeholder', attrs.placeholder);
           }
 
-
-          ngModel.$formatters.unshift(function(modelValue) {
-            if (!modelValue) return '';
-            return modelValue;
-          });
-
-          ngModel.$parsers.unshift(function(viewValue) {
-            return viewValue;
-          });
-
-          ngModel.$render = function() {
-            if (!ngModel.$viewValue) {
-              element.val('');
-            } else {
-              element.val(ngModel.$viewValue.formatted_address || '');
-            }
-          };
         }
       };
     }
